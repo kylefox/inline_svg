@@ -50,6 +50,7 @@ module InlineSvg
 
       def log_current_asset_finder(message)
         log("#{message} => InlineSvg.configuration.asset_finder is currently #{InlineSvg.configuration.asset_finder}")
+        log("#{message} => Thread.current[:inline_svg_asset_finder] is currently #{Thread.current[:inline_svg_asset_finder]}")
       end
 
       def render_inline_svg(filename, transform_params={})
@@ -68,7 +69,7 @@ module InlineSvg
           end
         end
 
-        comment = "<!-- Found #{filename} with #{InlineSvg.configuration.asset_finder} -->"
+        comment = "<!-- Found #{filename} with #{Thread.current[:inline_svg_asset_finder]} -->"
         output = InlineSvg::TransformPipeline.generate_html_from(svg_file, transform_params)
 
         "#{comment}\n#{output}".html_safe
@@ -84,7 +85,7 @@ module InlineSvg
 
       def placeholder(filename)
         css_class = InlineSvg.configuration.svg_not_found_css_class
-        not_found_message = "'#{filename}' #{extension_hint(filename)} with #{InlineSvg.configuration.asset_finder}"
+        not_found_message = "'#{filename}' #{extension_hint(filename)} with #{Thread.current[:inline_svg_asset_finder]}"
 
         if css_class.nil?
           return "<svg><!-- SVG file not found: #{not_found_message}--></svg>".html_safe
