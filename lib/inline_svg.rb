@@ -39,6 +39,8 @@ module InlineSvg
     end
 
     def asset_finder=(finder)
+      Rails.logger.debug("[#{Time.now.to_f}][inline_svg] InlineSvg.configuration.asset_finder= #{finder}")
+
       @asset_finder = if finder.respond_to?(:find_asset)
                         finder
                       else
@@ -47,6 +49,8 @@ module InlineSvg
                         # See: https://github.com/jamesmartin/inline_svg/issues/25
                         InlineSvg::StaticAssetFinder
                       end
+
+      Rails.logger.debug("[#{Time.now.to_f}][inline_svg] @asset_finder is #{@asset_finder}")
       asset_finder
     end
 

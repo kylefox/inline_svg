@@ -5,15 +5,33 @@ module InlineSvg
   module ActionView
     module Helpers
       def inline_svg_tag(filename, transform_params={})
-        with_asset_finder(InlineSvg.configuration.asset_finder) do
-          render_inline_svg(filename, transform_params)
+        log_current_asset_finder("start inline_svg_tag: #{filename}")
+
+        output = with_asset_finder(InlineSvg.configuration.asset_finder) do
+          log_current_asset_finder('start with_asset_finder(InlineSvg.configuration.asset_finder)')
+          _output = render_inline_svg(filename, transform_params)
+          log_current_asset_finder('finish with_asset_finder(InlineSvg.configuration.asset_finder)')
+          _output
         end
+
+        log_current_asset_finder("end inline_svg_tag: #{filename}")
+
+        output
       end
 
       def inline_svg_pack_tag(filename, transform_params={})
-        with_asset_finder(InlineSvg::WebpackAssetFinder) do
-          render_inline_svg(filename, transform_params)
+        log_current_asset_finder("start inline_svg_pack_tag: #{filename}")
+
+        output = with_asset_finder(InlineSvg::WebpackAssetFinder) do
+          log_current_asset_finder('start with_asset_finder(InlineSvg::WebpackAssetFinder)')
+          _output = render_inline_svg(filename, transform_params)
+          log_current_asset_finder('finish with_asset_finder(InlineSvg::WebpackAssetFinder)')
+          _output
         end
+
+        log_current_asset_finder("end inline_svg_pack_tag: #{filename}")
+
+        output
       end
 
       def inline_svg(filename, transform_params={})
@@ -25,6 +43,14 @@ module InlineSvg
       end
 
       private
+
+      def log(message)
+        Rails.logger.debug("[#{Time.now.to_f}][inline_svg] #{message}")
+      end
+
+      def log_current_asset_finder(message)
+        log("#{message} => InlineSvg.configuration.asset_finder is currently #{InlineSvg.configuration.asset_finder}")
+      end
 
       def render_inline_svg(filename, transform_params={})
         begin
@@ -42,7 +68,10 @@ module InlineSvg
           end
         end
 
-        InlineSvg::TransformPipeline.generate_html_from(svg_file, transform_params).html_safe
+        comment = "<!-- Found #{filename} with #{InlineSvg.configuration.asset_finder} -->"
+        output = InlineSvg::TransformPipeline.generate_html_from(svg_file, transform_params)
+
+        "#{comment}\n#{output}".html_safe
       end
 
       def read_svg(filename)
@@ -55,7 +84,7 @@ module InlineSvg
 
       def placeholder(filename)
         css_class = InlineSvg.configuration.svg_not_found_css_class
-        not_found_message = "'#{filename}' #{extension_hint(filename)}"
+        not_found_message = "'#{filename}' #{extension_hint(filename)} with #{InlineSvg.configuration.asset_finder}"
 
         if css_class.nil?
           return "<svg><!-- SVG file not found: #{not_found_message}--></svg>".html_safe
