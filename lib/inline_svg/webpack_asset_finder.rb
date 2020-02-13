@@ -1,3 +1,7 @@
+require 'tempfile'
+require 'net/http'
+require 'openssl'
+
 module InlineSvg
   class WebpackAssetFinder
     def self.find_asset(filename)
@@ -10,7 +14,7 @@ module InlineSvg
     end
 
     def pathname
-      return if @asset_path.blank?
+      return unless @asset_path
 
       if Webpacker.dev_server.running?
         dev_server_asset(@asset_path)
